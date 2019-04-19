@@ -2,11 +2,16 @@ import React, { Component } from "react";
 
 import { Meteor } from "meteor/meteor";
 import classnames from "classnames";
+import PropTypes from "prop-types";
+import { withTracker } from "meteor/react-meteor-data";
 // import AccountsUIWrapper from "./AccountsUIWrapper.jsx";
+
+import { TopSearch } from "../api/wiki.js";
 
 import {
   Button,
   Container,
+  Badge,
   Card,
   CardTitle,
   CardText,
@@ -47,7 +52,9 @@ class App extends Component {
     this.callMethod(text);
     this.setState(state => {
       const history = state.history;
-      history.unshift(text);
+      if (history.indexOf(text) < 0) {
+        history.unshift(text);
+      }
       return { history: history };
     });
   }
@@ -74,7 +81,9 @@ class App extends Component {
     this.callMethod(text);
     this.setState(state => {
       const history = state.history;
-      history.unshift(text);
+      if (history.indexOf(text) < 0) {
+        history.unshift(text);
+      }
       return { history: history };
     });
   }
@@ -133,6 +142,31 @@ class App extends Component {
     );
   }
 
+  renderTops() {
+    const content =
+      this.props.searches &&
+      this.props.searches.map((link, i) => {
+        return (
+          <ListGroupItem
+            key={i}
+            tag="button"
+            className="justify-content-between"
+            action
+            onClick={this.onClick.bind(this, link.term)}
+          >
+            {link.term}
+            <Badge pill>{link.count}</Badge>
+          </ListGroupItem>
+        );
+      });
+    return (
+      <Container className="links-container">
+        <h3> Top Searches </h3>
+        <ListGroup className="links">{content}</ListGroup>
+      </Container>
+    );
+  }
+
   renderHtml() {
     return (
       <Container className="content-container">
@@ -176,6 +210,7 @@ class App extends Component {
   // }
 
   render() {
+    console.log(this.props.searches);
     return (
       <div className="container">
         <header>
@@ -215,7 +250,7 @@ class App extends Component {
                 disabled={this.state.typing == ""}
                 onClick={this.handleSubmit.bind(this)}
               >
-                Submit
+                Search
               </Button>
             </div>
           </Form>
@@ -226,6 +261,7 @@ class App extends Component {
               <Container>
                 {this.renderHistory()}
                 {this.renderLinks()}
+                {this.renderTops()}
               </Container>
             </Col>
             <Col xs="12" md="12" lg="9">
@@ -238,4 +274,14 @@ class App extends Component {
   }
 }
 
-export default App;
+App.propTypes = {
+  searches: PropTypes.arrayOf(PropTypes.object)
+};
+
+export default withTracker(() => {
+  Meteor.subscribe("top-search");
+
+  return {
+    searches: TopSearch.find({}, { sort: { count: -1 } }).fetch()
+  };
+})(App);
