@@ -22,6 +22,10 @@ meteor
 
 Which will run the front-end development server on the port 3000, then visit (http://localhost:3000) and you should see the app running. The database is running on port 3001.
 
+# Creative Part
+
+Added top searches that share with all users
+
 # Author
 
 [Yifei Chen](http://davidychen.com/HomepageDavidChen/)
