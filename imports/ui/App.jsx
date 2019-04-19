@@ -28,15 +28,15 @@ class App extends Component {
     super(props);
 
     this.state = {
+      typing: "",
       term: "",
-      wikis: []
+      wikis: [],
+      history: []
     };
-
-    this.history = [];
   }
 
   onChange(event) {
-    this.setState({ term: event.target.value });
+    this.setState({ typing: event.target.value });
   }
 
   handleSubmit(event) {
@@ -45,6 +45,11 @@ class App extends Component {
     // Find the text field via the React ref
     const text = document.getElementById("search").value;
     this.callMethod(text);
+    this.setState(state => {
+      const history = state.history;
+      history.unshift(text);
+      return { history: history };
+    });
   }
 
   callMethod(text) {
@@ -53,25 +58,36 @@ class App extends Component {
         console.log(err);
         return;
       }
-      this.setState({
-        term: res.title,
-        links: res.links,
-        content: res.text["*"]
-      });
+      if (res) {
+        this.setState({
+          typing: res.title,
+          term: res.title,
+          links: res.links,
+          content: res.text["*"]
+        });
+      }
       console.log(res);
     });
   }
 
   onClick(text) {
     this.callMethod(text);
+    this.setState(state => {
+      const history = state.history;
+      history.unshift(text);
+      return { history: history };
+    });
   }
 
   goHistory(i) {
     this.callMethod(this.state.history[i]);
-    this.setState(history => history.slice(i + 1));
+    this.setState(state => {
+      return { history: state.history.slice(i, state.history.length) };
+    });
   }
 
   renderHistory() {
+    // console.log(this.state.history);
     const content =
       this.state.history &&
       this.state.history.map((term, i) => {
@@ -88,7 +104,7 @@ class App extends Component {
       });
     return (
       <Container className="links-container">
-        <h2> Links </h2>
+        <h3> History </h3>
         <ListGroup className="links">{content}</ListGroup>
       </Container>
     );
@@ -111,14 +127,19 @@ class App extends Component {
       });
     return (
       <Container className="links-container">
-        <h2> Links </h2>
+        <h3> Links </h3>
         <ListGroup className="links">{content}</ListGroup>
       </Container>
     );
   }
 
   renderHtml() {
-    return <div dangerouslySetInnerHTML={{ __html: this.state.content }} />;
+    return (
+      <Container className="content-container">
+        <h2> Content: {this.state.term} </h2>
+        <div dangerouslySetInnerHTML={{ __html: this.state.content }} />
+      </Container>
+    );
   }
 
   // renderWikis() {
@@ -178,7 +199,7 @@ class App extends Component {
                   placeholder="Search..."
                   id="search"
                   type="text"
-                  value={this.state.term}
+                  value={this.state.typing}
                   onChange={this.onChange.bind(this)}
                   onFocus={() => this.setState({ nameFocus: true })}
                   onBlur={() => this.setState({ nameFocus: false })}
@@ -191,7 +212,7 @@ class App extends Component {
                 className="my-4"
                 color="primary"
                 type="button"
-                disabled={this.state.term == ""}
+                disabled={this.state.typing == ""}
                 onClick={this.handleSubmit.bind(this)}
               >
                 Submit
@@ -199,9 +220,19 @@ class App extends Component {
             </div>
           </Form>
         </header>
-        {this.renderHistory()}
-        {this.renderLinks()}
-        {this.renderHtml()}
+        <Container>
+          <Row>
+            <Col xs="12" md="12" lg="3">
+              <Container>
+                {this.renderHistory()}
+                {this.renderLinks()}
+              </Container>
+            </Col>
+            <Col xs="12" md="12" lg="9">
+              {this.renderHtml()}
+            </Col>
+          </Row>
+        </Container>
       </div>
     );
   }
