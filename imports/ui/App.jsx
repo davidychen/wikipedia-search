@@ -73,7 +73,7 @@ class App extends Component {
           content: res.text["*"]
         });
       }
-      console.log(res);
+      // console.log(res);
     });
   }
 
@@ -210,7 +210,7 @@ class App extends Component {
   // }
 
   render() {
-    console.log(this.props.searches);
+    // console.log(this.props.searches);
     return (
       <div className="container">
         <header>
